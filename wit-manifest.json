@@ -1,0 +1,17 @@
+[
+    {
+        "commit": "b9806ae597c95cc398226e6a16a14b4fd5789d5e",
+        "name": "soc-testsocket-sifive",
+        "source": "git@github.com:sifive/soc-testsocket-sifive.git"
+    },
+    {
+        "commit": "06e5e068ffe7045de51f9a6fcfd40d34547e3859",
+        "name": "api-generator-sifive",
+        "source": "git@github.com:sifive/api-generator-sifive.git"
+    },
+    {
+        "commit": "c51c7980f86afa2d1841c524644fefbe564cd982",
+        "name": "api-scala-sifive",
+        "source": "git@github.com:sifive/api-scala-sifive.git"
+    }
+]

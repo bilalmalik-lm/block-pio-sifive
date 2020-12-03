@@ -1,0 +1,88 @@
+global def blockPIOSiFiveRoot = simplify "{here}/../.."
+global def loopbackScalaModule =
+  def name = "loopback"
+  def path = "{blockPIOSiFiveRoot}/craft/loopback"
+  def scalaVersion = sifiveSkeletonScalaModule.getScalaModuleScalaVersion
+  def deps = sifiveBlocksScalaModule, sifiveSkeletonScalaModule, Nil
+  makeScalaModule name path scalaVersion
+  | setScalaModuleSourceDirs ("src", Nil)
+  | setScalaModuleDeps deps
+  | setScalaModuleScalacOptions ("-Xsource:2.11", Nil)
+global def pioScalaModule =
+  def name = "pio"
+  def rootDir = "{blockPIOSiFiveRoot}/craft/pio"
+  def scalaVersion = sifiveSkeletonScalaModule.getScalaModuleScalaVersion
+  def deps = loopbackScalaModule, sifiveBlocksScalaModule, sifiveSkeletonScalaModule, Nil
+  makeScalaModule name rootDir scalaVersion
+  | setScalaModuleSourceDirs ("src", Nil)
+  | setScalaModuleDeps deps
+  | setScalaModuleScalacOptions ("-Xsource:2.11", Nil)
+global def pioBlock =
+  def scalaModule = pioScalaModule
+  def config = "sifive.blocks.pio.WithpioTop"
+  makeScalaBlock scalaModule config
+publish dutSimCompileOptionsHooks = pioHook, loopbackHook, Nil
+
+def loopbackHook =
+  def name = "loopback"
+  def addSources = source "{blockPIOSiFiveRoot}/rtl/verilog/loopback/loopback.sv", _
+  makeBlackBoxHook name (editDUTSimCompileOptionsSourceFiles addSources)
+
+def pioHook =
+  def name = "pio"
+  def addSources = source "{blockPIOSiFiveRoot}/rtl/verilog/pio/pio.sv", _
+  makeBlackBoxHook name (editDUTSimCompileOptionsSourceFiles addSources)
+def pioDriver =
+  def sourceFiles =
+    (sources "{blockPIOSiFiveRoot}/drivers/metal" `.*.c`)
+    ++ (sources "{blockPIOSiFiveRoot}/drivers/metal" `.*.h`)
+
+  def compatibleStrings = "sifive,pio-0.1.0", Nil
+  def vendor = "sifive"
+  def deviceName = "pio"
+  def cFiles = sourceFiles
+  def includeDirs = "{blockPIOSiFiveRoot}/drivers/metal", Nil
+  def visibleFiles = sourceFiles
+
+  makeDriverImplementation
+  compatibleStrings
+  vendor
+  deviceName
+  cFiles
+  includeDirs
+  visibleFiles
+
+publish driverImplementations = pioDriver, Nil
+global def demo =
+  def programName = "demo"
+  def cFiles = source "{blockPIOSiFiveRoot}/tests/c/demo/main.c", Nil
+  makeTestProgramPlan programName cFiles
+global def pioDUT =
+  def name = "pioDUT"
+  def blocks = pioBlock, Nil
+  makeTestSocketDUT name blocks
+publish dutTests = demoPioTest, Nil
+
+global def demoPioTest =
+  def name = "demo"
+  def type = "OMpio"
+  def program = demo
+  def plusargs =
+    NamedArg        "verbose",
+    NamedArgInteger "random_seed"      1234,
+    NamedArgInteger "tilelink_timeout" 16000,
+    NamedArgInteger "max-cycles"       50000,
+    Nil
+  makeOMBlockTest name type program plusargs
+
+
+
+
+
+
+
+
+
+
+
+
